@@ -3,7 +3,7 @@ import { BigNumber, Contract, Signer } from "ethers";
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("TicTacToe", function () {
+describe.skip("TicTacToe", function () {
   let account1: Signer;
   let account2: Signer;
   let account3: Signer;
@@ -185,18 +185,55 @@ describe("Vault Plan", function () {
 
   describe("Success Plan", function () {
     it("Should create a vault, put money in it", async function () {
+      const gameId = 0;
+      const value = "0.1"
+
+      await vault
+        .connect(account1)
+        .createVault(gameId, { value: ethers.utils.parseEther(value) });
+      const vaultInfo = await vault.connect(account1).getVault(0);
+
+      expect(vaultInfo.totalAmount).to.equal(
+        ethers.utils.parseEther(value)
+      );
+
+      await vault
+        .connect(account1)
+        .addAmount(gameId, { value: ethers.utils.parseEther(value) });
+      
+      const vaultInfo2 = await vault.connect(account1).getVault(0);
+      expect(vaultInfo2.totalAmount).to.equal(
+        ethers.utils.parseEther("0.2")
+      );
+
     });
 
-    it("Should Withdraw prize", async function () {
-    });
+    // it("Should Withdraw prize", async function () {
+    // });
   });
 
   describe("Failure Plan", function () {
-    it("Should fail money deposit because not an owner", async function () {
+    it("Should fail createing a vault because not an owner", async function () {
+      const gameId = 0;
+      const value = "0.1"
+
+      await expect(
+        vault.connect(account2).createVault(gameId, { value: ethers.utils.parseEther(value) })
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+
     });
 
-    it("Should fail money witdraw because not an owner", async function () {
+    it("Should fail money deposit because not an owner", async function () {
+      const gameId = 0;
+      const value = "0.1"
+
+      await expect(
+        vault.connect(account2).addAmount(gameId, { value: ethers.utils.parseEther(value) })
+      ).to.be.revertedWith("Ownable: caller is not the owner");
     });
+
+    // it("Should fail money witdraw because not an owner", async function () {
+    // });
   });
 
 
