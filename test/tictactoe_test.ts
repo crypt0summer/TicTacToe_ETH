@@ -4,7 +4,7 @@ import { BigNumber, Contract, Signer } from "ethers";
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe.skip("Vault Plan", function () {
+describe("Vault Plan", function () {
   let account1: Signer;
   let account2: Signer;
   let vault: Contract;
@@ -207,8 +207,9 @@ describe("TicTacToe", function () {
 
       await ttt.connect(account2).takeTurn(gameId, 1, 1);
 
-      const gameInfo = await ttt.getGameInfo(gameId);
       //Check reset
+
+      const gameInfo = await ttt.getGameInfo(gameId);
       expect(gameInfo.status).to.equal(GameState.PLAYING);
       expect(gameInfo.turnsTaken).to.equal(0);
       expect(gameInfo.winner).to.equal(
@@ -219,7 +220,7 @@ describe("TicTacToe", function () {
     });
   });
 
-  describe.skip("Error Plan", function () {
+  describe("Error Plan", function () {
     it("Should fail - player 1 & 2 ETH didn't match", async function () {
       await expect(
         ttt.connect(account2).joinAndStartGame(gameId)
