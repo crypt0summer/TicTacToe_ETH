@@ -117,10 +117,10 @@ contract TicTacToe {
         // console.log(uint(game.board[8]));
 
         //Check if the game has ended
-
-        //Draw
-        if (game.turnsTaken == 9) {
-            //TODO check if someone won first
+        if(_isWinner(gameId, identifier)){
+            game.winner = msg.sender;
+            game.status = GameState.FINISHED;
+        }else if (game.turnsTaken == 9) { //Draw
             game.status = GameState.FINISHED;
             _resetGame(game);
         }
@@ -133,11 +133,52 @@ contract TicTacToe {
         game.status = GameState.PLAYING;
     }
 
+    function _isWinner(
+        uint256 gameId,
+        BoardState bstate
+    ) private view returns (bool) {
+        Game memory game = games[gameId];
+
+        uint8[3][8] memory winningFilters = [
+            [0, 1, 2],//rows
+            [3, 4, 5],
+            [6, 7, 8], 
+            [0, 3, 6],//columns
+            [1, 4, 7],
+            [2, 5, 8], 
+            [0, 4, 8],//diagonals
+            [6, 4, 2] 
+        ];
+
+        // See if either of the players have won
+        for (uint8 i = 0; i < winningFilters.length; i++) {
+            uint8[3] memory filter = winningFilters[i];
+
+            // Player was successful!
+            if (
+                game.board[filter[0]] == bstate &&
+                game.board[filter[1]] == bstate &&
+                game.board[filter[2]] == bstate
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function getBoard(uint256 gameId)
         external
         view
         returns (BoardState[9] memory)
     {
         return games[gameId].board;
+    }
+
+    function getGameInfo(uint256 gameId)
+        external
+        view
+        returns (Game memory)
+    {
+        return games[gameId];
     }
 }
