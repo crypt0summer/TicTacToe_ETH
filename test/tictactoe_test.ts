@@ -17,7 +17,7 @@ describe("TicTacToe", function () {
   }
   beforeEach(async () => {
     [account1, account2, account3] = await ethers.getSigners();
-    let TicTacToe = await ethers.getContractFactory("TicTacToe");
+    const TicTacToe = await ethers.getContractFactory("TicTacToe");
     ttt = await TicTacToe.deploy();
     await ttt.deployed();
 
@@ -167,4 +167,37 @@ describe("TicTacToe", function () {
       ).to.be.revertedWith("Already taken");
     });
   });
+});
+
+
+describe("Vault Plan", function () {
+  let account1: Signer; 
+  let account2: Signer;
+  let vault : Contract;
+
+  beforeEach(async function () {
+    [account1, account2] = await ethers.getSigners();
+    const VaultContract = await ethers.getContractFactory("VaultContract");
+    vault = await VaultContract.deploy();
+    await vault.deployed();
+  });
+
+
+  describe("Success Plan", function () {
+    it("Should create a vault, put money in it", async function () {
+    });
+
+    it("Should Withdraw prize", async function () {
+    });
+  });
+
+  describe("Failure Plan", function () {
+    it("Should fail money deposit because not an owner", async function () {
+    });
+
+    it("Should fail money witdraw because not an owner", async function () {
+    });
+  });
+
+
 });
