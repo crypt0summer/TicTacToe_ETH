@@ -58,8 +58,10 @@ contract TicTacToe {
         _gameId.increment();
         emit LogGameId(gameId);
 
-        VaultContract(vaultContract).createVault{value: msg.value}(gameId);
-
+        (bool success, ) = vaultContract.call{value: msg.value}(
+            abi.encodeWithSignature("createVault(uint256)", gameId)
+        );
+        require(success, "Failed to createVault vault");
         return gameId;
     }
 
@@ -69,7 +71,10 @@ contract TicTacToe {
         game.user2 = Player({addr: payable(msg.sender), betEth: msg.value});
         game.status = GameState.PLAYING;
 
-        VaultContract(vaultContract).addAmount{value: msg.value}(gameId);
+        (bool success, ) = vaultContract.call{value: msg.value}(
+            abi.encodeWithSignature("addAmount(uint256)", gameId)
+        );
+        require(success, "Failed to addAmount vault");
     }
 
     modifier checkPlayable(
@@ -117,7 +122,11 @@ contract TicTacToe {
             game.status = GameState.FINISHED;
             //give prize to the winner
             (bool success, ) = vaultContract.call(
-                abi.encodeWithSignature("withdraw(uint256,address)", gameId, payable(game.winner))
+                abi.encodeWithSignature(
+                    "withdraw(uint256,address)",
+                    gameId,
+                    payable(game.winner)
+                )
             );
             require(success, "Failed to withdraw vault");
         } else if (game.turnsTaken == 9) {

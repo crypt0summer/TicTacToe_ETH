@@ -131,8 +131,6 @@ describe("TicTacToe", function () {
     let transaction = await ttt
       .connect(account1)
       .createGame({ value: ethers.utils.parseEther("0.1") });
-    // console.log(await ttt.provider.getBalance(ttt.address));
-    // console.log(await vault.connect(account1).getVault(gameId));
 
     const receipt = await transaction.wait();
     for (const event of receipt.events) {
@@ -147,6 +145,7 @@ describe("TicTacToe", function () {
         .connect(account2)
         .joinAndStartGame(gameId, { value: ethers.utils.parseEther("0.1") });
       expect(tx).to.not.be.undefined;
+
     });
 
     it("Should User 1 Win - row", async function () {
@@ -167,11 +166,6 @@ describe("TicTacToe", function () {
       const gameInfo = await ttt.getGameInfo(gameId);
       expect(gameInfo.winner).to.equal(await account1.getAddress());
       expect(gameInfo.status).to.equal(GameState.FINISHED);
-
-      
-
-     
-
     });
 
     it("Should User 2 Win - column", async function () {
