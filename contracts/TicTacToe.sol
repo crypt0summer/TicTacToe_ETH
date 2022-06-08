@@ -2,8 +2,7 @@
 pragma solidity ^0.8.13;
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "hardhat/console.sol";
-import './Vault.sol';
-
+import "./Vault.sol";
 
 contract TicTacToe {
     using Counters for Counters.Counter;
@@ -42,8 +41,6 @@ contract TicTacToe {
 
     event LogGameId(uint256 gameId);
 
-    
-
     function createGame() external payable returns (uint256) {
         BoardState[9] memory board;
         uint256 gameId = _gameId.current();
@@ -60,7 +57,7 @@ contract TicTacToe {
         });
         _gameId.increment();
         emit LogGameId(gameId);
-    
+
         VaultContract(vaultContract).createVault{value: msg.value}(gameId);
 
         return gameId;
@@ -73,8 +70,6 @@ contract TicTacToe {
         game.status = GameState.PLAYING;
 
         VaultContract(vaultContract).addAmount{value: msg.value}(gameId);
-
-        
     }
 
     modifier checkPlayable(
@@ -117,10 +112,16 @@ contract TicTacToe {
         game.board[boardLocation] = identifier;
 
         //Check if the game has ended
-        if(_isWinner(gameId, identifier)){
+        if (_isWinner(gameId, identifier)) {
             game.winner = msg.sender;
             game.status = GameState.FINISHED;
-        }else if (game.turnsTaken == 9) { //Draw
+            //give prize to the winner
+            (bool success, ) = vaultContract.call(
+                abi.encodeWithSignature("withdraw(uint256,address)", gameId, payable(game.winner))
+            );
+            require(success, "Failed to withdraw vault");
+        } else if (game.turnsTaken == 9) {
+            //Draw
             game.status = GameState.FINISHED;
             _resetGame(game);
         }
@@ -133,21 +134,22 @@ contract TicTacToe {
         game.status = GameState.PLAYING;
     }
 
-    function _isWinner(
-        uint256 gameId,
-        BoardState bstate
-    ) private view returns (bool) {
+    function _isWinner(uint256 gameId, BoardState bstate)
+        private
+        view
+        returns (bool)
+    {
         Game memory game = games[gameId];
 
         uint8[3][8] memory winningFilters = [
-            [0, 1, 2],//rows
+            [0, 1, 2], //rows
             [3, 4, 5],
-            [6, 7, 8], 
-            [0, 3, 6],//columns
+            [6, 7, 8],
+            [0, 3, 6], //columns
             [1, 4, 7],
-            [2, 5, 8], 
-            [0, 4, 8],//diagonals
-            [6, 4, 2] 
+            [2, 5, 8],
+            [0, 4, 8], //diagonals
+            [6, 4, 2]
         ];
 
         // See if either of the players have won
@@ -174,11 +176,7 @@ contract TicTacToe {
         return games[gameId].board;
     }
 
-    function getGameInfo(uint256 gameId)
-        external
-        view
-        returns (Game memory)
-    {
+    function getGameInfo(uint256 gameId) external view returns (Game memory) {
         return games[gameId];
     }
 

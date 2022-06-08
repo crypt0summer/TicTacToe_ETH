@@ -154,8 +154,8 @@ describe("TicTacToe", function () {
         .connect(account2)
         .joinAndStartGame(gameId, { value: ethers.utils.parseEther("0.1") });
       expect(tx).to.not.be.undefined;
-      console.log(await vault.connect(account1).getVault(gameId));
 
+      
       await ttt.connect(account1).takeTurn(gameId, 1, 1);
       await ttt.connect(account2).takeTurn(gameId, 2, 2);
 
@@ -167,7 +167,10 @@ describe("TicTacToe", function () {
       const gameInfo = await ttt.getGameInfo(gameId);
       expect(gameInfo.winner).to.equal(await account1.getAddress());
       expect(gameInfo.status).to.equal(GameState.FINISHED);
-      console.log(await vault.connect(account1).getVault(gameId));
+
+      
+
+     
 
     });
 
