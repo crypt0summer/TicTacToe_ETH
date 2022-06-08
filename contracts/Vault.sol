@@ -31,8 +31,12 @@ contract VaultContract is Ownable{
         vaults[gameId].totalAmount += msg.value;
     }
 
-    function distribute(uint256 gameId) external payable onlyOwner {
+    function withdraw(uint256 gameId, address payable winner) external payable onlyOwner {
         Vault storage vault = vaults[gameId];
+        
+        emit VaultDistribution( gameId, winner, vault.totalAmount );
+        winner.transfer(vault.totalAmount);
+
         vault.totalAmount = 0;
         vault.winner = address(0x0);
     }

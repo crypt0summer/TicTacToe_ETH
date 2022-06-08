@@ -3,7 +3,109 @@ import { BigNumber, Contract, Signer } from "ethers";
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe.skip("TicTacToe", function () {
+describe("Vault Plan", function () {
+  let account1: Signer;
+  let account2: Signer;
+  let vault: Contract;
+
+  beforeEach(async function () {
+    [account1, account2] = await ethers.getSigners();
+    const VaultContract = await ethers.getContractFactory("VaultContract");
+    vault = await VaultContract.deploy();
+    await vault.deployed();
+  });
+
+  describe("Success Plan", function () {
+    it("Should create a vault, put money in it", async function () {
+      const gameId = 0;
+      const value = "0.1";
+
+      await vault
+        .connect(account1)
+        .createVault(gameId, { value: ethers.utils.parseEther(value) });
+      const vaultInfo = await vault.connect(account1).getVault(0);
+
+      expect(vaultInfo.totalAmount).to.equal(ethers.utils.parseEther(value));
+
+      await vault
+        .connect(account1)
+        .addAmount(gameId, { value: ethers.utils.parseEther(value) });
+
+      const vaultInfo2 = await vault.connect(account1).getVault(0);
+      expect(vaultInfo2.totalAmount).to.equal(ethers.utils.parseEther("0.2"));
+    });
+
+    it("Should Withdraw prize", async function () {
+      const gameId = 0;
+      const value = "0.1";
+
+      await vault
+        .connect(account1)
+        .createVault(gameId, { value: ethers.utils.parseEther(value) });
+      const vaultInfo = await vault.connect(account1).getVault(0);
+
+      expect(vaultInfo.totalAmount).to.equal(ethers.utils.parseEther(value));
+
+      await vault
+        .connect(account1)
+        .addAmount(gameId, { value: ethers.utils.parseEther(value) });
+
+      const vaultInfo2 = await vault.connect(account1).getVault(0);
+      expect(vaultInfo2.totalAmount).to.equal(ethers.utils.parseEther("0.2"));
+
+      let balance_bf = await account2.getBalance();
+      balance_bf = BigNumber.from(balance_bf);
+      // balance_bf = ethers.utils.parseEther(balance_bf);
+      await vault.connect(account1).withdraw(gameId, account2.getAddress());
+
+      let balance_af = await account2.getBalance();
+      balance_af = BigNumber.from(balance_af);
+
+      console.log(balance_bf);
+      console.log(balance_af);
+      expect(balance_af).to.equal(
+        balance_bf.add(BigNumber.from(ethers.utils.parseEther("0.2")))
+      );
+    });
+  });
+
+  describe("Failure Plan", function () {
+    it("Should fail createing a vault because not an owner", async function () {
+      const gameId = 0;
+      const value = "0.1";
+
+      await expect(
+        vault
+          .connect(account2)
+          .createVault(gameId, { value: ethers.utils.parseEther(value) })
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("Should fail money deposit because not an owner", async function () {
+      const gameId = 0;
+      const value = "0.1";
+
+      await expect(
+        vault
+          .connect(account2)
+          .addAmount(gameId, { value: ethers.utils.parseEther(value) })
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("Should fail money witdraw because not an owner", async function () {
+      const gameId = 0;
+      
+      await expect(
+        vault
+          .connect(account2)
+          .withdraw(gameId, account2.getAddress())
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+  });
+});
+
+
+describe("TicTacToe", function () {
   let account1: Signer;
   let account2: Signer;
   let account3: Signer;
@@ -103,10 +205,11 @@ describe.skip("TicTacToe", function () {
       //Check reset
       expect(gameInfo.status).to.equal(GameState.PLAYING);
       expect(gameInfo.turnsTaken).to.equal(0);
-      expect(gameInfo.winner).to.equal("0x0000000000000000000000000000000000000000");
+      expect(gameInfo.winner).to.equal(
+        "0x0000000000000000000000000000000000000000"
+      );
 
       await ttt.connect(account1).takeTurn(gameId, 3, 2);
-
     });
   });
 
@@ -169,72 +272,3 @@ describe.skip("TicTacToe", function () {
   });
 });
 
-
-describe("Vault Plan", function () {
-  let account1: Signer; 
-  let account2: Signer;
-  let vault : Contract;
-
-  beforeEach(async function () {
-    [account1, account2] = await ethers.getSigners();
-    const VaultContract = await ethers.getContractFactory("VaultContract");
-    vault = await VaultContract.deploy();
-    await vault.deployed();
-  });
-
-
-  describe("Success Plan", function () {
-    it("Should create a vault, put money in it", async function () {
-      const gameId = 0;
-      const value = "0.1"
-
-      await vault
-        .connect(account1)
-        .createVault(gameId, { value: ethers.utils.parseEther(value) });
-      const vaultInfo = await vault.connect(account1).getVault(0);
-
-      expect(vaultInfo.totalAmount).to.equal(
-        ethers.utils.parseEther(value)
-      );
-
-      await vault
-        .connect(account1)
-        .addAmount(gameId, { value: ethers.utils.parseEther(value) });
-      
-      const vaultInfo2 = await vault.connect(account1).getVault(0);
-      expect(vaultInfo2.totalAmount).to.equal(
-        ethers.utils.parseEther("0.2")
-      );
-
-    });
-
-    // it("Should Withdraw prize", async function () {
-    // });
-  });
-
-  describe("Failure Plan", function () {
-    it("Should fail createing a vault because not an owner", async function () {
-      const gameId = 0;
-      const value = "0.1"
-
-      await expect(
-        vault.connect(account2).createVault(gameId, { value: ethers.utils.parseEther(value) })
-      ).to.be.revertedWith("Ownable: caller is not the owner");
-
-    });
-
-    it("Should fail money deposit because not an owner", async function () {
-      const gameId = 0;
-      const value = "0.1"
-
-      await expect(
-        vault.connect(account2).addAmount(gameId, { value: ethers.utils.parseEther(value) })
-      ).to.be.revertedWith("Ownable: caller is not the owner");
-    });
-
-    // it("Should fail money witdraw because not an owner", async function () {
-    // });
-  });
-
-
-});
