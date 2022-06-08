@@ -79,9 +79,35 @@ describe("TicTacToe", function () {
       expect(gameInfo.status).to.equal(GameState.FINISHED);
     });
 
-    // it("Should draw and restart the game", async function () {
-    //   expect(1).to.equal(1);
-    // });
+    it("Should draw and restart the game", async function () {
+      let tx = await ttt
+        .connect(account2)
+        .joinAndStartGame(gameId, { value: ethers.utils.parseEther("0.1") });
+      expect(tx).to.not.be.undefined;
+
+      await ttt.connect(account2).takeTurn(gameId, 3, 2);
+      await ttt.connect(account1).takeTurn(gameId, 3, 1);
+
+      await ttt.connect(account2).takeTurn(gameId, 2, 2);
+      await ttt.connect(account1).takeTurn(gameId, 1, 2);
+
+      await ttt.connect(account2).takeTurn(gameId, 2, 1);
+      await ttt.connect(account1).takeTurn(gameId, 2, 3);
+
+      await ttt.connect(account2).takeTurn(gameId, 1, 3);
+      await ttt.connect(account1).takeTurn(gameId, 3, 3);
+
+      await ttt.connect(account2).takeTurn(gameId, 1, 1);
+
+      const gameInfo = await ttt.getGameInfo(gameId);
+      //Check reset
+      expect(gameInfo.status).to.equal(GameState.PLAYING);
+      expect(gameInfo.turnsTaken).to.equal(0);
+      expect(gameInfo.winner).to.equal("0x0000000000000000000000000000000000000000");
+
+      await ttt.connect(account1).takeTurn(gameId, 3, 2);
+
+    });
   });
 
   describe("Error Plan", function () {
