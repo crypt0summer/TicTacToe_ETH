@@ -1,9 +1,10 @@
+import { Address } from "cluster";
 import { BigNumber, Contract, Signer } from "ethers";
 
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("Vault Plan", function () {
+describe.skip("Vault Plan", function () {
   let account1: Signer;
   let account2: Signer;
   let vault: Contract;
@@ -61,8 +62,6 @@ describe("Vault Plan", function () {
       let balance_af = await account2.getBalance();
       balance_af = BigNumber.from(balance_af);
 
-      console.log(balance_bf);
-      console.log(balance_af);
       expect(balance_af).to.equal(
         balance_bf.add(BigNumber.from(ethers.utils.parseEther("0.2")))
       );
@@ -131,8 +130,13 @@ describe("TicTacToe", function () {
     for (const event of receipt.events) {
       // console.log(`Event ${event.event} with args ${event.args}`);
 
-      gameId = event.args.gameId;
+    gameId = event.args.gameId;
     }
+
+    const VaultContract = await ethers.getContractFactory("VaultContract");
+    let vault = await VaultContract.deploy();
+    await vault.deployed();
+    await ttt.connect(account1).setVault(vault.address);
   });
 
   describe("Success Plan", function () {
@@ -141,6 +145,9 @@ describe("TicTacToe", function () {
         .connect(account2)
         .joinAndStartGame(gameId, { value: ethers.utils.parseEther("0.1") });
       expect(tx).to.not.be.undefined;
+
+      console.log(await ttt.connect(account1).getVault());
+
     });
 
     it("Should User 1 Win - row", async function () {
@@ -213,7 +220,7 @@ describe("TicTacToe", function () {
     });
   });
 
-  describe("Error Plan", function () {
+  describe.skip("Error Plan", function () {
     it("Should fail - player 1 & 2 ETH didn't match", async function () {
       await expect(
         ttt.connect(account2).joinAndStartGame(gameId)

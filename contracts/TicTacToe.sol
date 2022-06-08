@@ -7,6 +7,7 @@ import "hardhat/console.sol";
 contract TicTacToe {
     using Counters for Counters.Counter;
     Counters.Counter private _gameId;
+    address vaultContract;
 
     struct Player {
         address payable addr;
@@ -57,6 +58,11 @@ contract TicTacToe {
         _gameId.increment();
         emit LogGameId(gameId);
 
+        (bool success, ) = vaultContract.call{value: msg.value}(
+            abi.encodeWithSignature("createVault(uint256)", gameId)
+        );
+        require(success, "Failed to create vault");
+
         return gameId;
     }
 
@@ -105,16 +111,6 @@ contract TicTacToe {
             ? identifier = BoardState.USER1
             : identifier = BoardState.USER2;
         game.board[boardLocation] = identifier;
-
-        // console.log(uint(game.board[0]));
-        // console.log(uint(game.board[1]));
-        // console.log(uint(game.board[2]));
-        // console.log(uint(game.board[3]));
-        // console.log(uint(game.board[4]));
-        // console.log(uint(game.board[5]));
-        // console.log(uint(game.board[6]));
-        // console.log(uint(game.board[7]));
-        // console.log(uint(game.board[8]));
 
         //Check if the game has ended
         if(_isWinner(gameId, identifier)){
@@ -180,5 +176,13 @@ contract TicTacToe {
         returns (Game memory)
     {
         return games[gameId];
+    }
+
+    function setVault(address vaultAddr) external {
+        vaultContract = vaultAddr;
+    }
+
+    function getVault() external view returns (address) {
+        return address(vaultContract);
     }
 }

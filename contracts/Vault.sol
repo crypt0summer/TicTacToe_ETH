@@ -19,6 +19,9 @@ contract VaultContract is Ownable{
         uint256 totalAmount
     );
 
+    event JustFallback(string _str);
+    event JustReceive(string _str);
+
     function createVault(
         uint256 gameId
     ) external payable onlyOwner {
@@ -45,4 +48,11 @@ contract VaultContract is Ownable{
         return vaults[gameId];
     }
 
+    fallback() external{
+        emit JustFallback("Fallback is called");
+    }
+
+    receive() external payable{
+        emit JustReceive("Receive is called");
+    }
 }
