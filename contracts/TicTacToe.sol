@@ -1,8 +1,9 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 import "@openzeppelin/contracts/utils/Counters.sol";
-
 import "hardhat/console.sol";
+import './Vault.sol';
+
 
 contract TicTacToe {
     using Counters for Counters.Counter;
@@ -41,6 +42,8 @@ contract TicTacToe {
 
     event LogGameId(uint256 gameId);
 
+    
+
     function createGame() external payable returns (uint256) {
         BoardState[9] memory board;
         uint256 gameId = _gameId.current();
@@ -57,11 +60,8 @@ contract TicTacToe {
         });
         _gameId.increment();
         emit LogGameId(gameId);
-
-        (bool success, ) = vaultContract.call{value: msg.value}(
-            abi.encodeWithSignature("createVault(uint256)", gameId)
-        );
-        require(success, "Failed to create vault");
+    
+        VaultContract(vaultContract).createVault{value: msg.value}(gameId);
 
         return gameId;
     }
@@ -71,6 +71,10 @@ contract TicTacToe {
         require(game.user1.betEth == msg.value, "Invalid ETH");
         game.user2 = Player({addr: payable(msg.sender), betEth: msg.value});
         game.status = GameState.PLAYING;
+
+        VaultContract(vaultContract).addAmount{value: msg.value}(gameId);
+
+        
     }
 
     modifier checkPlayable(

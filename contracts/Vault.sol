@@ -4,7 +4,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "hardhat/console.sol";
 
-contract VaultContract is Ownable{
+contract VaultContract is Ownable {
     struct Vault {
         address winner;
         uint256 totalAmount;
@@ -12,7 +12,7 @@ contract VaultContract is Ownable{
 
     uint256 totalVaults;
     mapping(uint256 => Vault) vaults;
-    
+
     event VaultDistribution(
         uint256 gameId,
         address winner,
@@ -22,22 +22,26 @@ contract VaultContract is Ownable{
     event JustFallback(string _str);
     event JustReceive(string _str);
 
-    function createVault(
-        uint256 gameId
-    ) external payable onlyOwner {
+    function createVault(uint256 gameId) external payable onlyOwner {
         Vault storage vault = vaults[gameId];
         vault.winner = address(0x0);
         vault.totalAmount = msg.value;
     }
 
-    function addAmount(uint256 gameId) external payable onlyOwner{
+    function addAmount(uint256 gameId) external payable onlyOwner {
         vaults[gameId].totalAmount += msg.value;
+        // console.log("VAULT");
+        // console.log(msg.value);
     }
 
-    function withdraw(uint256 gameId, address payable winner) external payable onlyOwner {
+    function withdraw(uint256 gameId, address payable winner)
+        external
+        payable
+        onlyOwner
+    {
         Vault storage vault = vaults[gameId];
-        
-        emit VaultDistribution( gameId, winner, vault.totalAmount );
+
+        emit VaultDistribution(gameId, winner, vault.totalAmount);
         winner.transfer(vault.totalAmount);
 
         vault.totalAmount = 0;
@@ -48,11 +52,15 @@ contract VaultContract is Ownable{
         return vaults[gameId];
     }
 
-    fallback() external{
-        emit JustFallback("Fallback is called");
+    function setNewOwner(address newOwner) external onlyOwner {
+        transferOwnership(newOwner);
     }
 
-    receive() external payable{
-        emit JustReceive("Receive is called");
-    }
+    // fallback() external{
+    //     emit JustFallback("Fallback is called");
+    // }
+
+    // receive() external payable{
+    //     emit JustReceive("Receive is called");
+    // }
 }
