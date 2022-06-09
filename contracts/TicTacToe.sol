@@ -42,7 +42,7 @@ contract TicTacToe {
 
     event LogGameId(uint256 gameId);
 
-    function createGame() external payable returns (uint256) {
+    function createGame() external payable {
         BoardState[9] memory board;
         uint256 gameId = _gameId.current();
 
@@ -63,7 +63,6 @@ contract TicTacToe {
             abi.encodeWithSignature("createVault(uint256)", gameId)
         );
         require(success, "Failed to createVault vault");
-        return gameId;
     }
 
     function joinAndStartGame(uint256 gameId) external payable {
