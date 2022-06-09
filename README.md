@@ -28,12 +28,13 @@ npm i
 - 두개의 주소만 참여 가능하고, 두번째 참여자가 참여시 동일한 수량의 이더리움이 예치된다.
 - 게임의 승자가 자동으로 예치된 이더리움을 획득한다.
 - 무승부일 경우 게임을 처음부터 재개한다.
-- 빌드 및 배포 스크립트(ts)
+- 두번째 참여자가 참여하지 않았다면 게임이 시작되지 않은 것이다. 따라서 게임을 취소하고 예치한 돈을  클레임 할 수 있다.
+- 빌드 및 배포 스크립트(ts) 작성
 - 이더저장금고 분리(Vault.ts)
-- 가스최적화
+- 가스 최적화
 
 ## 테스트
-15건의 테스트 시나리오가 실행됩니다. 성공과 실패 케이스를 모두 테스트하였습니다.
+18건의 테스트 시나리오가 실행됩니다. 성공과 실패 케이스를 모두 테스트하였습니다.
 ```
 npx hardhat test
 ```
@@ -53,8 +54,42 @@ npx hardhat run --network rinkeby scripts/deploy.ts
 ----------------------
 (1,3) | (2,3) | (3,3)
 ```
-### 함수 설명
-#### 
+### TicTacToe.sol 함수 명세서
+
+#### createGame()
+첫번째 유저가 게임방을 만듭니다.
+| API |
+| ------------ |
+| createGame() |
+##### Request
+```
+await tictactoeContract
+      .connect(Signer)
+      .createGame({ value: ethers.utils.parseEther("1.0") });
+```
+##### Response
+```
+gameId (uint256)
+```
+
+
+
+
+##### joinAndStartGame(uint256 gameId)
+두번째 유저가 게임방에 조인합니다. 바로 게임이 시작됩니다.
+##### takeTurn(uint256 gameId, uint256 _x, uint256 _y)
+번갈아가며 게임판에 수를 둡니다.
+##### cancelGameAndRefund(uint256 gameId)
+게임이 시작하지 않았다면 실행을 취소하고 예치한 이더리움을 돌려받습니다.
+##### getBoard(uint256 gameId)
+현재 게임판을 조회합니다.
+##### getGameInfo(uint256 gameId)
+현재 게임 정보를 조회합니다.
+##### setVault(address vaultAddr)
+지갑 금고주소를 할당합니다.
+##### getVault(address vaultAddr)
+할당된 금고주소를 조회합니다.
+
 
 ### 가스비 최적화
 1) 컨트랙트를 배포할 때 optimizer 옵션을 설정하면EVM에 올릴 바이트코드를 최적화해서 생성하기 때문에 가스비가 감소합니다.
