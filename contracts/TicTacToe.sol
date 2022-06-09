@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./Vault.sol";
+// import "hardhat/console.sol";
 
 contract TicTacToe {
     using Counters for Counters.Counter;
@@ -16,7 +17,8 @@ contract TicTacToe {
     enum GameState {
         READY,
         PLAYING,
-        FINISHED
+        FINISHED,
+        CANCELED
     }
 
     enum BoardState {
@@ -133,6 +135,21 @@ contract TicTacToe {
             game.status = GameState.FINISHED;
             _resetGame(game);
         }
+    }
+
+    function cancelGameAndRefund(uint256 gameId) external payable {
+        Game storage game = games[gameId];
+        require(game.status == GameState.READY, "Can't cancel");
+        game.status = GameState.CANCELED;
+        
+        (bool success, ) = vaultContract.call(
+                abi.encodeWithSignature(
+                    "claim(uint256,address)",
+                    gameId,
+                    payable(game.user1.addr)
+                )
+            );
+        require(success, "Failed to withdraw vault");
     }
 
     function _resetGame(Game storage game) private {

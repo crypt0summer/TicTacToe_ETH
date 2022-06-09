@@ -24,7 +24,7 @@ describe("Vault Plan", function () {
       await vault
         .connect(account1)
         .createVault(gameId, { value: ethers.utils.parseEther(value) });
-      const vaultInfo = await vault.connect(account1).getVault(0);
+      const vaultInfo = await vault.connect(account1).getVault(gameId);
 
       expect(vaultInfo.totalAmount).to.equal(ethers.utils.parseEther(value));
 
@@ -32,7 +32,7 @@ describe("Vault Plan", function () {
         .connect(account1)
         .addAmount(gameId, { value: ethers.utils.parseEther(value) });
 
-      const vaultInfo2 = await vault.connect(account1).getVault(0);
+      const vaultInfo2 = await vault.connect(account1).getVault(gameId);
       expect(vaultInfo2.totalAmount).to.equal(ethers.utils.parseEther("0.2"));
     });
 
@@ -43,7 +43,7 @@ describe("Vault Plan", function () {
       await vault
         .connect(account1)
         .createVault(gameId, { value: ethers.utils.parseEther(value) });
-      const vaultInfo = await vault.connect(account1).getVault(0);
+      const vaultInfo = await vault.connect(account1).getVault(gameId);
 
       expect(vaultInfo.totalAmount).to.equal(ethers.utils.parseEther(value));
 
@@ -51,13 +51,44 @@ describe("Vault Plan", function () {
         .connect(account1)
         .addAmount(gameId, { value: ethers.utils.parseEther(value) });
 
-      const vaultInfo2 = await vault.connect(account1).getVault(0);
+      const vaultInfo2 = await vault.connect(account1).getVault(gameId);
       expect(vaultInfo2.totalAmount).to.equal(ethers.utils.parseEther("0.2"));
 
       let balance_bf = await account2.getBalance();
       balance_bf = BigNumber.from(balance_bf);
       // balance_bf = ethers.utils.parseEther(balance_bf);
       await vault.connect(account1).withdraw(gameId, account2.getAddress());
+
+      let balance_af = await account2.getBalance();
+      balance_af = BigNumber.from(balance_af);
+
+      expect(balance_af).to.equal(
+        balance_bf.add(BigNumber.from(ethers.utils.parseEther("0.2")))
+      );
+    });
+
+    it("Should claim eth", async function () {
+      const gameId = 0;
+      const value = "0.1";
+
+      await vault
+        .connect(account1)
+        .createVault(gameId, { value: ethers.utils.parseEther(value) });
+      const vaultInfo = await vault.connect(account1).getVault(gameId);
+
+      expect(vaultInfo.totalAmount).to.equal(ethers.utils.parseEther(value));
+
+      await vault
+        .connect(account1)
+        .addAmount(gameId, { value: ethers.utils.parseEther(value) });
+
+      const vaultInfo2 = await vault.connect(account1).getVault(gameId);
+      expect(vaultInfo2.totalAmount).to.equal(ethers.utils.parseEther("0.2"));
+
+      let balance_bf = await account2.getBalance();
+      balance_bf = BigNumber.from(balance_bf);
+      // balance_bf = ethers.utils.parseEther(balance_bf);
+      await vault.connect(account1).claim(gameId, account2.getAddress());
 
       let balance_af = await account2.getBalance();
       balance_af = BigNumber.from(balance_af);
@@ -101,7 +132,7 @@ describe("Vault Plan", function () {
   });
 });
 
-describe("TicTacToe", function () {
+describe.skip("TicTacToe", function () {
   let account1: Signer;
   let account2: Signer;
   let account3: Signer;
@@ -113,7 +144,8 @@ describe("TicTacToe", function () {
     READY,
     PLAYING,
     FINISHED,
-  }
+    CANCELED
+}
   beforeEach(async () => {
     [account1, account2, account3] = await ethers.getSigners();
 
@@ -140,12 +172,24 @@ describe("TicTacToe", function () {
   });
 
   describe("Success Plan", function () {
-    it("Create and Start game", async function () {
+    it("Should Create and Start game", async function () {
       let tx = await ttt
         .connect(account2)
         .joinAndStartGame(gameId, { value: ethers.utils.parseEther("0.1") });
       expect(tx).to.not.be.undefined;
 
+    });
+
+    it("Should cancel the game and get refund", async function () {
+      const tx2 = await ttt.connect(account1).cancelGameAndRefund(gameId);
+      expect(tx2).to.not.be.undefined;
+
+      const gameInfo = await ttt.getGameInfo(gameId);
+      expect(gameInfo.winner).to.equal("0x0000000000000000000000000000000000000000");
+      expect(gameInfo.status).to.equal(GameState.CANCELED);
+
+      const vaultInfo = await vault.connect(account1).getVault(gameId);
+      expect(vaultInfo.totalAmount).to.equal(ethers.utils.parseEther("0.0"));
     });
 
     it("Should User 1 Win - row", async function () {
@@ -275,6 +319,18 @@ describe("TicTacToe", function () {
       await expect(
         ttt.connect(account1).takeTurn(gameId, 1, 1)
       ).to.be.revertedWith("Already taken");
+    });
+
+    it("Should fail - game has already started", async function () {
+      let tx = await ttt
+        .connect(account2)
+        .joinAndStartGame(gameId, { value: ethers.utils.parseEther("0.1") });
+      expect(tx).to.not.be.undefined;
+
+      await expect(
+        ttt.connect(account1).cancelGameAndRefund(gameId)
+      ).to.be.revertedWith("Can't cancel");
+
     });
   });
 });

@@ -17,8 +17,14 @@ contract VaultContract is Ownable {
         uint256 totalAmount
     );
 
-    event JustFallback(string _str);
-    event JustReceive(string _str);
+    event VaultClaim(
+        uint256 gameId,
+        address _to,
+        uint256 totalAmount
+    );
+
+    // event JustFallback(string _str);
+    // event JustReceive(string _str);
 
     function createVault(uint256 gameId) external payable onlyOwner {
         Vault storage vault = vaults[gameId];
@@ -42,6 +48,19 @@ contract VaultContract is Ownable {
 
         vault.totalAmount = 0;
         vault.winner = address(0x0);
+    }
+
+    function claim(uint256 gameId, address payable user)
+        external
+        payable
+        onlyOwner
+    {
+        Vault storage vault = vaults[gameId];
+
+        emit VaultClaim(gameId, user, vault.totalAmount);
+        user.transfer(vault.totalAmount);
+
+        vault.totalAmount = 0;
     }
 
     function getVault(uint256 gameId) external view returns (Vault memory) {
