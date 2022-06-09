@@ -10,6 +10,9 @@ TicTacToe를 이더리움 온체인에서 플레이해봅시다. Typescript, Sol
 3. [테스트](#테스트)
 4. [빌드 및 배포방법](#빌드-및-배포방법)
 5. [사용법](#사용법)
+    1. [입력포맷](#입력포맷) 
+    2. [TicTacToe.sol 함수 명세서](#TicTacToe.sol-함수-명세서) 
+    3. [Vault.sol 함수 명세서](#Vault.sol-함수-명세서) 
 6. [가스비 최적화](#가스비-최적화)
 7. [License](#License)
 
@@ -69,9 +72,13 @@ await tictactoeContract
       .createGame({ value: ethers.utils.parseEther("1.0") });
 ```
 ##### Response
+emit 값
 ```
-gameId (uint256)
+for (const event of receipt.events) {
+      gameId = event.args.gameId;
+    }
 ```
+
 ---
 
 ### joinAndStartGame
@@ -90,7 +97,7 @@ none
 
 ---
 
-#### takeTurn
+### takeTurn
 번갈아가며 게임판에 수를 둡니다.
 | API |
 | ------------ |
@@ -106,7 +113,7 @@ none
 
 ---
 
-##### cancelGameAndRefund
+### cancelGameAndRefund
 게임이 시작하지 않았다면 실행을 취소하고 예치한 이더리움을 돌려받습니다.
 | API |
 | ------------ |
@@ -122,7 +129,7 @@ none
 
 ---
 
-##### getBoard
+### getBoard
 현재 게임판을 조회합니다.
 | API |
 | ------------ |
@@ -148,7 +155,7 @@ enum BoardState {
 
 ---
 
-##### getGameInfo
+### getGameInfo
 현재 게임 정보를 조회합니다.
 | API |
 | ------------ |
@@ -188,8 +195,8 @@ await tictactoeContract
 
 ---
 
-##### setVault
-지갑 금고주소를 할당합니다.
+### setVault
+금고주소를 할당합니다.
 | API |
 | ------------ |
 | setVault(address vaultAddr) |
@@ -204,24 +211,136 @@ none
 
 ---
 
-##### getVault
-할당된 금고주소를 조회합니다.
+### getVault
+할당된 금고정보를 조회합니다.
 | API |
 | ------------ |
-| getVault(address vaultAddr) |
+| getVault() |
 ##### Request
 ```
 await tictactoeContract
       .connect(Signer)
-      .getVault(vault.address);
+      .getVault();
+```
+##### Response
+```
+0xcbeaf3bde82155f56486fb5a1072cb8baaf547cc
+```
+
+---
+
+### Vault.sol 함수 명세서
+###  createVault
+새 금고를 만들고 예치합니다.
+| API |
+| ------------ |
+| createVault(uint256 gameId) |
+##### Request
+```
+await vaultContract
+      .connect(Signer)
+      .createVault(gameId, { value: ethers.utils.parseEther(`1.0`) });
+
+```
+##### Response
+none
+
+---
+
+###  addAmount
+금고에 돈을 추가 예치합니다
+| API |
+| ------------ |
+| addAmount(uint256 gameId) |
+##### Request
+```
+await vaultContract
+      .connect(Signer)
+      .addAmount(gameId, { value: ethers.utils.parseEther(`1.0`) });
+```
+##### Response
+none
+
+---
+
+###  withdraw
+승리시 돈을 출금합니다.
+| API |
+| ------------ |
+| withdraw(uint256 gameId, address payable winner) |
+##### Request
+```
+await vaultContract
+      .connect(Signer)
+      .withdraw(gameId, signer.getAddress());
+```
+##### Response
+emit 값
+```
+vault.on("VaultDistribution", (sender, event) => {
+      console.log(sender);
+      console.log(event);
+    });
+```
+
+---
+
+###  claim
+게임 취소시 돈을 출금합니다.
+| API |
+| ------------ |
+| claim(uint256 gameId, address payable user) |
+##### Request
+```
+await vaultContract
+      .connect(Signer)
+      .claim(gameId, signer.getAddress());
+```
+##### Response
+emit 값
+```
+vaultContract.on("VaultClaim", (sender, event) => {
+      console.log(sender);
+      console.log(event);
+    });
+```
+
+---
+
+###  getVault
+할당된 금고정보를 조회합니다.
+| API |
+| ------------ |
+| getVault(uint256 gameId) |
+##### Request
+```
+await vaultContract
+      .connect(Signer)
+      .getVault(gameId);
 ```
 ##### Response
 ```
 [
   winner: '0x0000000000000000000000000000000000000000',
-  totalAmount: BigNumber { value: "200000000000000000" }
+  totalAmount: BigNumber { value: "0" }
 ]
 ```
+
+---
+
+###  setNewOwner
+지갑에 새 오너를 지정합니다.
+| API |
+| ------------ |
+| setNewOwner(address newOwner) |
+##### Request
+```
+await vaultContract
+      .connect(Signer)
+      .setNewOwner(tictactoeContract.address);
+```
+##### Response
+none
 
 ---
 
