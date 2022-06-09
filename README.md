@@ -348,8 +348,8 @@ none
 
 ### 가스비 최적화
 1) 컨트랙트를 배포할 때 optimizer 옵션을 설정하면EVM에 올릴 바이트코드를 최적화해서 생성하기 때문에 가스비가 감소합니다.
-optimizer 미적용시 Vault 컨트랙트 배포 가스비 : 2.5 Gwei  -[Rinkeby에서 확인](https://rinkeby.etherscan.io/tx/0x5c30c3323b323b4f6681d96ac1ade0a64fe7fc1c0709c000583344ae6dbc6586) 
-optimizer 적용시 Vault 컨트랙트 배포 가스비 : 1.5 Gwei  -[Rinkeby에서 확인](https://rinkeby.etherscan.io/tx/0x73804d9a3938848f93c379b858c55df3cf38720b1bf4a0c5ba74f540f78f5444)
+optimizer 미적용시 Vault 컨트랙트 배포 가스비 : 2.5 Gwei  -[Rinkeby에서 확인](https://rinkeby.etherscan.io/tx/0x5c30c3323b323b4f6681d96ac1ade0a64fe7fc1c0709c000583344ae6dbc6586)     
+optimizer 적용시 Vault 컨트랙트 배포 가스비 : 1.5 Gwei  -[Rinkeby에서 확인](https://rinkeby.etherscan.io/tx/0x73804d9a3938848f93c379b858c55df3cf38720b1bf4a0c5ba74f540f78f5444)     
 
 2) Tight variable packing pattern: struct를 선언시 Tight variable packing pattern을 사용하여 storage slot 사용 개수를 줄여 가스비가 최소화 하였습니다.
 3) 외부에서만 사용하는 함수는 public이 아니라 external로 선언하였습니다.
