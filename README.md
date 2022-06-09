@@ -57,7 +57,7 @@ npx hardhat run --network rinkeby scripts/deploy.ts
 ```
 ### TicTacToe.sol 함수 명세서
 ---
-#### createGame()
+### createGame
 첫번째 유저가 게임방을 만듭니다.
 | API |
 | ------------ |
@@ -74,25 +74,157 @@ gameId (uint256)
 ```
 ---
 
-
-
-#### joinAndStartGame()
+### joinAndStartGame
 두번째 유저가 게임방에 조인합니다. 바로 게임이 시작됩니다.
 | API |
 | ------------ |
 | joinAndStartGame(uint256 gameId) |
-##### takeTurn(uint256 gameId, uint256 _x, uint256 _y)
+##### Request
+```
+await tictactoeContract
+      .connect(Signer)
+      .joinAndStartGame(gameId, { value: ethers.utils.parseEther("1.0") });
+```
+##### Response
+none
+
+---
+
+#### takeTurn
 번갈아가며 게임판에 수를 둡니다.
-##### cancelGameAndRefund(uint256 gameId)
+| API |
+| ------------ |
+| takeTurn(uint256 gameId, uint256 _x, uint256 _y) |
+##### Request
+```
+await tictactoeContract
+      .connect(Signer)
+      .takeTurn(gameId, 1, 1);
+```
+##### Response
+none
+
+---
+
+##### cancelGameAndRefund
 게임이 시작하지 않았다면 실행을 취소하고 예치한 이더리움을 돌려받습니다.
-##### getBoard(uint256 gameId)
+| API |
+| ------------ |
+| cancelGameAndRefund(uint256 gameId) |
+##### Request
+```
+await tictactoeContract
+      .connect(Signer)
+      .cancelGameAndRefund(gameId);
+```
+##### Response
+none
+
+---
+
+##### getBoard
 현재 게임판을 조회합니다.
-##### getGameInfo(uint256 gameId)
+| API |
+| ------------ |
+| getBoard(uint256 gameId) |
+##### Request
+```
+await tictactoeContract
+      .connect(Signer)
+      .getBoard(gameId);
+```
+##### Response
+```
+[
+  1, 0, 0, 0, 2,
+  0, 0, 0, 0
+]
+enum BoardState {
+        EMPTY,
+        USER1,
+        USER2
+    }
+```
+
+---
+
+##### getGameInfo
 현재 게임 정보를 조회합니다.
-##### setVault(address vaultAddr)
+| API |
+| ------------ |
+| getGameInfo(uint256 gameId) |
+##### Request
+```
+await tictactoeContract
+      .connect(Signer)
+      .getGameInfo(gameId);
+```
+##### Response
+```
+[
+  id: BigNumber { value: "0" },
+  turnsTaken: 0,
+  winner: '0x0000000000000000000000000000000000000000',
+  lastPlayed: '0x0000000000000000000000000000000000000000',
+  user1: [
+    '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+    BigNumber { value: "100000000000000000" },
+    addr: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+    betEth: BigNumber { value: "100000000000000000" }
+  ],
+  user2: [
+    '0x0000000000000000000000000000000000000000',
+    BigNumber { value: "0" },
+    addr: '0x0000000000000000000000000000000000000000',
+    betEth: BigNumber { value: "0" }
+  ],
+  status: 3,
+  board: [
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0
+  ]
+]
+```
+
+---
+
+##### setVault
 지갑 금고주소를 할당합니다.
-##### getVault(address vaultAddr)
+| API |
+| ------------ |
+| setVault(address vaultAddr) |
+##### Request
+```
+await tictactoeContract
+      .connect(Signer)
+      .setVault(vault.address);
+```
+##### Response
+none
+
+---
+
+##### getVault
 할당된 금고주소를 조회합니다.
+| API |
+| ------------ |
+| getVault(address vaultAddr) |
+##### Request
+```
+await tictactoeContract
+      .connect(Signer)
+      .getVault(vault.address);
+```
+##### Response
+```
+[
+  winner: '0x0000000000000000000000000000000000000000',
+  totalAmount: BigNumber { value: "200000000000000000" }
+]
+```
+
+---
+
 
 
 ### 가스비 최적화
