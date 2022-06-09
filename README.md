@@ -11,8 +11,8 @@ TicTacToe를 이더리움 온체인에서 플레이해봅시다. Typescript, Sol
 4. [빌드 및 배포방법](#빌드-및-배포방법)
 5. [사용법](#사용법)
     1. [입력포맷](#입력포맷) 
-    2. [TicTacToe.sol 함수 명세서](#TicTacToe.sol-함수-명세서) 
-    3. [Vault.sol 함수 명세서](#Vault.sol-함수-명세서) 
+    2. [TicTacToe.sol 함수 명세서](#tictactoesol-함수-명세서) 
+    3. [Vault.sol 함수 명세서](#vaultsol-함수-명세서) 
 6. [가스비 최적화](#가스비-최적화)
 7. [License](#License)
 
