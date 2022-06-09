@@ -14,6 +14,16 @@ describe("Vault Plan", function () {
     const VaultContract = await ethers.getContractFactory("VaultContract");
     vault = await VaultContract.deploy();
     await vault.deployed();
+
+    vault.on("VaultClaim", (sender, event) => {
+      console.log(sender);
+      console.log(event);
+    });
+
+    vault.on("VaultDistribution", (sender, event) => {
+      console.log(sender);
+      console.log(event);
+    });
   });
 
   describe("Success Plan", function () {
@@ -88,8 +98,7 @@ describe("Vault Plan", function () {
       let balance_bf = await account2.getBalance();
       balance_bf = BigNumber.from(balance_bf);
       // balance_bf = ethers.utils.parseEther(balance_bf);
-      await vault.connect(account1).claim(gameId, account2.getAddress());
-
+      const receipt = await vault.connect(account1).claim(gameId, account2.getAddress());
       let balance_af = await account2.getBalance();
       balance_af = BigNumber.from(balance_af);
 
@@ -144,8 +153,8 @@ describe("TicTacToe", function () {
     READY,
     PLAYING,
     FINISHED,
-    CANCELED
-}
+    CANCELED,
+  }
   beforeEach(async () => {
     [account1, account2, account3] = await ethers.getSigners();
 
@@ -158,7 +167,6 @@ describe("TicTacToe", function () {
     await ttt.deployed();
     await ttt.connect(account1).setVault(vault.address);
     await vault.setNewOwner(ttt.address);
-
 
     let transaction = await ttt
       .connect(account1)
@@ -177,7 +185,6 @@ describe("TicTacToe", function () {
         .connect(account2)
         .joinAndStartGame(gameId, { value: ethers.utils.parseEther("0.1") });
       expect(tx).to.not.be.undefined;
-
     });
 
     it("Should cancel the game and get refund", async function () {
@@ -185,7 +192,9 @@ describe("TicTacToe", function () {
       expect(tx2).to.not.be.undefined;
 
       const gameInfo = await ttt.getGameInfo(gameId);
-      expect(gameInfo.winner).to.equal("0x0000000000000000000000000000000000000000");
+      expect(gameInfo.winner).to.equal(
+        "0x0000000000000000000000000000000000000000"
+      );
       expect(gameInfo.status).to.equal(GameState.CANCELED);
 
       const vaultInfo = await vault.connect(account1).getVault(gameId);
@@ -198,7 +207,6 @@ describe("TicTacToe", function () {
         .joinAndStartGame(gameId, { value: ethers.utils.parseEther("0.1") });
       expect(tx).to.not.be.undefined;
 
-      
       await ttt.connect(account1).takeTurn(gameId, 1, 1);
       await ttt.connect(account2).takeTurn(gameId, 2, 2);
 
@@ -330,7 +338,6 @@ describe("TicTacToe", function () {
       await expect(
         ttt.connect(account1).cancelGameAndRefund(gameId)
       ).to.be.revertedWith("Can't cancel");
-
     });
   });
 });
