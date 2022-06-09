@@ -2,8 +2,6 @@
 pragma solidity ^0.8.13;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "hardhat/console.sol";
-
 contract VaultContract is Ownable {
     struct Vault {
         address winner;
@@ -30,8 +28,6 @@ contract VaultContract is Ownable {
 
     function addAmount(uint256 gameId) external payable onlyOwner {
         vaults[gameId].totalAmount += msg.value;
-        // console.log("VAULT");
-        // console.log(msg.value);
     }
 
     function withdraw(uint256 gameId, address payable winner)
