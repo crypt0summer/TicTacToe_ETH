@@ -2,6 +2,7 @@
 
 TicTacToe를 이더리움 온체인에서 플레이해봅시다. Typescript, Solidity, Hardhat, Waffle로 구현하였습니다.
 
+
 ## 목차
 
 1. [설치방법](#설치방법)
@@ -55,7 +56,7 @@ npx hardhat run --network rinkeby scripts/deploy.ts
 (1,3) | (2,3) | (3,3)
 ```
 ### TicTacToe.sol 함수 명세서
-
+---
 #### createGame()
 첫번째 유저가 게임방을 만듭니다.
 | API |
@@ -71,12 +72,15 @@ await tictactoeContract
 ```
 gameId (uint256)
 ```
+---
 
 
 
-
-##### joinAndStartGame(uint256 gameId)
+#### joinAndStartGame()
 두번째 유저가 게임방에 조인합니다. 바로 게임이 시작됩니다.
+| API |
+| ------------ |
+| joinAndStartGame(uint256 gameId) |
 ##### takeTurn(uint256 gameId, uint256 _x, uint256 _y)
 번갈아가며 게임판에 수를 둡니다.
 ##### cancelGameAndRefund(uint256 gameId)
