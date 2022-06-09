@@ -132,7 +132,7 @@ describe("Vault Plan", function () {
   });
 });
 
-describe.skip("TicTacToe", function () {
+describe("TicTacToe", function () {
   let account1: Signer;
   let account2: Signer;
   let account3: Signer;
