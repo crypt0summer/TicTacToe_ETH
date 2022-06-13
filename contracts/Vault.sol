@@ -44,9 +44,11 @@ contract VaultContract is Ownable {
         Vault storage vault = vaults[gameId];
 
         emit VaultDistribution(gameId, winner, vault.totalAmount);
-        winner.transfer(vault.totalAmount);
-
+        uint256 _vault = vault.totalAmount;
         vault.totalAmount = 0;
+
+        winner.transfer(_vault);
+
         vault.winner = address(0x0);
     }
 
@@ -58,9 +60,11 @@ contract VaultContract is Ownable {
         Vault storage vault = vaults[gameId];
 
         emit VaultClaim(gameId, user, vault.totalAmount);
-        user.transfer(vault.totalAmount);
-
+        uint256 _vault = vault.totalAmount;
         vault.totalAmount = 0;
+        
+        user.transfer(_vault);
+
     }
 
     function getVault(uint256 gameId) external view returns (Vault memory) {
