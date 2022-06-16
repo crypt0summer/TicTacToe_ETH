@@ -67,7 +67,7 @@ contract VaultContract is Ownable {
 
     }
 
-    function getVault(uint256 gameId) external view returns (Vault memory) {
+    function getVault(uint256 gameId) external view onlyOwner returns (Vault memory) {
         return vaults[gameId];
     }
 
