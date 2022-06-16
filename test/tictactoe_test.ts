@@ -197,8 +197,6 @@ describe("TicTacToe", function () {
       );
       expect(gameInfo.status).to.equal(GameState.CANCELED);
 
-      const vaultInfo = await vault.connect(account1).getVault(gameId);
-      expect(vaultInfo.totalAmount).to.equal(ethers.utils.parseEther("0.0"));
     });
 
     it("Should User 1 Win - row", async function () {

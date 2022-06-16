@@ -1,13 +1,20 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./Vault.sol";
-// import "hardhat/console.sol";
+// import "./Vault.sol";
+import "hardhat/console.sol";
+
+interface IVault {
+    function createVault(uint256 gameId) external payable;
+    function addAmount(uint256 gameId) external payable;
+    function withdraw(uint256 gameId, address payable winner) external payable;
+    function claim(uint256 gameId, address payable user) external payable;
+}
 
 contract TicTacToe {
     using Counters for Counters.Counter;
     Counters.Counter private _gameId;
-    address vaultContract;
+    address vaultAddr;
 
     struct Player {
         address payable addr;
@@ -59,10 +66,12 @@ contract TicTacToe {
         _gameId.increment();
         emit LogGameId(gameId);
 
-        (bool success, ) = vaultContract.call{value: msg.value}(
-            abi.encodeWithSignature("createVault(uint256)", gameId)
-        );
-        require(success, "Failed to createVault vault");
+        // (bool success, ) = vaultAddr.call{value: msg.value}(
+        //     abi.encodeWithSignature("createVault(uint256)", gameId)
+        // );
+        // require(success, "Failed to createVault vault");
+        
+        IVault(vaultAddr).createVault{value: msg.value}(gameId);
     }
 
     function joinAndStartGame(uint256 gameId) external payable {
@@ -71,10 +80,11 @@ contract TicTacToe {
         game.user2 = Player({addr: payable(msg.sender), betEth: msg.value});
         game.status = GameState.PLAYING;
 
-        (bool success, ) = vaultContract.call{value: msg.value}(
-            abi.encodeWithSignature("addAmount(uint256)", gameId)
-        );
-        require(success, "Failed to addAmount vault");
+        // (bool success, ) = vaultAddr.call{value: msg.value}(
+        //     abi.encodeWithSignature("addAmount(uint256)", gameId)
+        // );
+        // require(success, "Failed to addAmount vault");
+        IVault(vaultAddr).addAmount{value: msg.value}(gameId);
     }
 
     modifier checkPlayable(
@@ -121,14 +131,15 @@ contract TicTacToe {
             game.winner = msg.sender;
             game.status = GameState.FINISHED;
             //give prize to the winner
-            (bool success, ) = vaultContract.call(
-                abi.encodeWithSignature(
-                    "withdraw(uint256,address)",
-                    gameId,
-                    payable(game.winner)
-                )
-            );
-            require(success, "Failed to withdraw vault");
+            // (bool success, ) = vaultAddr.call(
+            //     abi.encodeWithSignature(
+            //         "withdraw(uint256,address)",
+            //         gameId,
+            //         payable(game.winner)
+            //     )
+            // );
+            // require(success, "Failed to withdraw vault");
+            IVault(vaultAddr).withdraw(gameId, payable(game.winner));
         } else if (game.turnsTaken == 9) {
             //Draw
             game.status = GameState.FINISHED;
@@ -141,14 +152,15 @@ contract TicTacToe {
         require(game.status == GameState.READY, "Can't cancel");
         game.status = GameState.CANCELED;
         
-        (bool success, ) = vaultContract.call(
-                abi.encodeWithSignature(
-                    "claim(uint256,address)",
-                    gameId,
-                    payable(game.user1.addr)
-                )
-            );
-        require(success, "Failed to withdraw vault");
+        // (bool success, ) = vaultAddr.call(
+        //         abi.encodeWithSignature(
+        //             "claim(uint256,address)",
+        //             gameId,
+        //             payable(game.user1.addr)
+        //         )
+        //     );
+        // require(success, "Failed to withdraw vault");
+        IVault(vaultAddr).claim(gameId, payable(game.user1.addr));
     }
 
     function _resetGame(Game storage game) private {
@@ -204,11 +216,11 @@ contract TicTacToe {
         return games[gameId];
     }
 
-    function setVault(address vaultAddr) external {
-        vaultContract = vaultAddr;
+    function setVault(address _vaultAddr) external {
+        vaultAddr = _vaultAddr;
     }
 
     function getVault() external view returns (address) {
-        return address(vaultContract);
+        return address(vaultAddr);
     }
 }

@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "hardhat/console.sol";
 
 contract VaultContract is Ownable {
     struct Vault {
@@ -75,11 +76,14 @@ contract VaultContract is Ownable {
         transferOwnership(newOwner);
     }
 
-    // fallback() external{
-    //     emit JustFallback("Fallback is called");
-    // }
+    fallback() external{
+        // emit JustFallback("Fallback is called");
+        console.log('fallback');
 
-    // receive() external payable{
-    //     emit JustReceive("Receive is called");
-    // }
+    }
+
+    receive() external payable{
+        // emit JustReceive("Receive is called");
+        console.log('receive');
+    }
 }
