@@ -4,32 +4,31 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
 contract VaultContract is Ownable {
+    enum TakenStatus {
+        READY,
+        PLAYING,
+        FINISHED,
+        CANCELED
+    }
+
     struct Vault {
-        address winner;
+        address _to;
         uint256 totalAmount;
     }
 
     uint256 totalVaults;
     mapping(uint256 => Vault) vaults;
 
-    event VaultDistribution(
+    event WithdrawVault(
         uint256 gameId,
-        address winner,
-        uint256 totalAmount
-    );
-
-    event VaultClaim(
-        uint256 gameId,
+        uint256 totalAmount,
         address _to,
-        uint256 totalAmount
+        TakenStatus takenStatus
     );
-
-    // event JustFallback(string _str);
-    // event JustReceive(string _str);
 
     function createVault(uint256 gameId) external payable onlyOwner {
         Vault storage vault = vaults[gameId];
-        vault.winner = address(0x0);
+        vault._to = address(0x0);
         vault.totalAmount = msg.value;
     }
 
@@ -37,35 +36,18 @@ contract VaultContract is Ownable {
         vaults[gameId].totalAmount += msg.value;
     }
 
-    function withdraw(uint256 gameId, address payable winner)
+    function withdraw(uint256 gameId, address payable _to, uint8 gameStatus)
         external
         payable
         onlyOwner
     {
         Vault storage vault = vaults[gameId];
 
-        emit VaultDistribution(gameId, winner, vault.totalAmount);
+        emit WithdrawVault(gameId, vault.totalAmount, _to , TakenStatus(gameStatus));
         uint256 _vault = vault.totalAmount;
         vault.totalAmount = 0;
-
-        winner.transfer(_vault);
-
-        vault.winner = address(0x0);
-    }
-
-    function claim(uint256 gameId, address payable user)
-        external
-        payable
-        onlyOwner
-    {
-        Vault storage vault = vaults[gameId];
-
-        emit VaultClaim(gameId, user, vault.totalAmount);
-        uint256 _vault = vault.totalAmount;
-        vault.totalAmount = 0;
-        
-        user.transfer(_vault);
-
+        vault._to = address(0x0);
+        _to.transfer(_vault);
     }
 
     function getVault(uint256 gameId) external view onlyOwner returns (Vault memory) {
@@ -76,14 +58,4 @@ contract VaultContract is Ownable {
         transferOwnership(newOwner);
     }
 
-    fallback() external{
-        // emit JustFallback("Fallback is called");
-        console.log('fallback');
-
-    }
-
-    receive() external payable{
-        // emit JustReceive("Receive is called");
-        console.log('receive');
-    }
 }

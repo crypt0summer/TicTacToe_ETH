@@ -7,8 +7,8 @@ import "hardhat/console.sol";
 interface IVault {
     function createVault(uint256 gameId) external payable;
     function addAmount(uint256 gameId) external payable;
-    function withdraw(uint256 gameId, address payable winner) external payable;
-    function claim(uint256 gameId, address payable user) external payable;
+    function withdraw(uint256 gameId, address payable _to, uint8 gameState) external payable;
+   // function claim(uint256 gameId, address payable user) external payable;
 }
 
 contract TicTacToe {
@@ -45,11 +45,19 @@ contract TicTacToe {
         BoardState[9] board;
     }
 
+    
     mapping(uint256 => Game) games;
+    mapping(address => uint256) withdrawList;
 
     event LogGameId(uint256 gameId);
 
+    constructor() {
+        _gameId.increment(); //withdrawList's default value will be 0 
+    }
+
     function createGame() external payable {
+        require(withdrawList[msg.sender] == 0, "Withdraw money first");
+
         BoardState[9] memory board;
         uint256 gameId = _gameId.current();
 
@@ -66,11 +74,6 @@ contract TicTacToe {
         _gameId.increment();
         emit LogGameId(gameId);
 
-        // (bool success, ) = vaultAddr.call{value: msg.value}(
-        //     abi.encodeWithSignature("createVault(uint256)", gameId)
-        // );
-        // require(success, "Failed to createVault vault");
-        
         IVault(vaultAddr).createVault{value: msg.value}(gameId);
     }
 
@@ -80,10 +83,6 @@ contract TicTacToe {
         game.user2 = Player({addr: payable(msg.sender), betEth: msg.value});
         game.status = GameState.PLAYING;
 
-        // (bool success, ) = vaultAddr.call{value: msg.value}(
-        //     abi.encodeWithSignature("addAmount(uint256)", gameId)
-        // );
-        // require(success, "Failed to addAmount vault");
         IVault(vaultAddr).addAmount{value: msg.value}(gameId);
     }
 
@@ -130,16 +129,8 @@ contract TicTacToe {
         if (_isWinner(gameId, identifier)) {
             game.winner = msg.sender;
             game.status = GameState.FINISHED;
+            withdrawList[msg.sender] = gameId;
             //give prize to the winner
-            // (bool success, ) = vaultAddr.call(
-            //     abi.encodeWithSignature(
-            //         "withdraw(uint256,address)",
-            //         gameId,
-            //         payable(game.winner)
-            //     )
-            // );
-            // require(success, "Failed to withdraw vault");
-            IVault(vaultAddr).withdraw(gameId, payable(game.winner));
         } else if (game.turnsTaken == 9) {
             //Draw
             game.status = GameState.FINISHED;
@@ -147,20 +138,19 @@ contract TicTacToe {
         }
     }
 
-    function cancelGameAndRefund(uint256 gameId) external payable {
+    function withdraw() external {
+        uint256 withdraw_gameId = withdrawList[msg.sender];
+        delete withdrawList[msg.sender];
+        Game memory game = games[withdraw_gameId];
+        
+        IVault(vaultAddr).withdraw(withdraw_gameId, payable(msg.sender), uint8(game.status));
+    }
+
+    function cancelGame(uint256 gameId) external payable {
         Game storage game = games[gameId];
         require(game.status == GameState.READY, "Can't cancel");
         game.status = GameState.CANCELED;
-        
-        // (bool success, ) = vaultAddr.call(
-        //         abi.encodeWithSignature(
-        //             "claim(uint256,address)",
-        //             gameId,
-        //             payable(game.user1.addr)
-        //         )
-        //     );
-        // require(success, "Failed to withdraw vault");
-        IVault(vaultAddr).claim(gameId, payable(game.user1.addr));
+        withdrawList[msg.sender] = gameId;
     }
 
     function _resetGame(Game storage game) private {

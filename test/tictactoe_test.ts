@@ -15,12 +15,7 @@ describe("Vault Plan", function () {
     vault = await VaultContract.deploy();
     await vault.deployed();
 
-    vault.on("VaultClaim", (sender, event) => {
-      console.log(sender);
-      console.log(event);
-    });
-
-    vault.on("VaultDistribution", (sender, event) => {
+    vault.on("WithdrawVault", (sender, event) => {
       console.log(sender);
       console.log(event);
     });
@@ -67,7 +62,7 @@ describe("Vault Plan", function () {
       let balance_bf = await account2.getBalance();
       balance_bf = BigNumber.from(balance_bf);
       // balance_bf = ethers.utils.parseEther(balance_bf);
-      await vault.connect(account1).withdraw(gameId, account2.getAddress());
+      await vault.connect(account1).withdraw(gameId, account2.getAddress(), 3);
 
       let balance_af = await account2.getBalance();
       balance_af = BigNumber.from(balance_af);
@@ -77,35 +72,6 @@ describe("Vault Plan", function () {
       );
     });
 
-    it("Should claim eth", async function () {
-      const gameId = 0;
-      const value = "0.1";
-
-      await vault
-        .connect(account1)
-        .createVault(gameId, { value: ethers.utils.parseEther(value) });
-      const vaultInfo = await vault.connect(account1).getVault(gameId);
-
-      expect(vaultInfo.totalAmount).to.equal(ethers.utils.parseEther(value));
-
-      await vault
-        .connect(account1)
-        .addAmount(gameId, { value: ethers.utils.parseEther(value) });
-
-      const vaultInfo2 = await vault.connect(account1).getVault(gameId);
-      expect(vaultInfo2.totalAmount).to.equal(ethers.utils.parseEther("0.2"));
-
-      let balance_bf = await account2.getBalance();
-      balance_bf = BigNumber.from(balance_bf);
-      // balance_bf = ethers.utils.parseEther(balance_bf);
-      const receipt = await vault.connect(account1).claim(gameId, account2.getAddress());
-      let balance_af = await account2.getBalance();
-      balance_af = BigNumber.from(balance_af);
-
-      expect(balance_af).to.equal(
-        balance_bf.add(BigNumber.from(ethers.utils.parseEther("0.2")))
-      );
-    });
   });
 
   describe("Failure Plan", function () {
@@ -135,7 +101,7 @@ describe("Vault Plan", function () {
       const gameId = 0;
 
       await expect(
-        vault.connect(account2).withdraw(gameId, account2.getAddress())
+        vault.connect(account2).withdraw(gameId, account2.getAddress(), 3)
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
   });
@@ -188,9 +154,12 @@ describe("TicTacToe", function () {
     });
 
     it("Should cancel the game and get refund", async function () {
-      const tx2 = await ttt.connect(account1).cancelGameAndRefund(gameId);
-      expect(tx2).to.not.be.undefined;
+      const tx1 = await ttt.connect(account1).cancelGame(gameId);
+      expect(tx1).to.not.be.undefined;
 
+      const tx2 = await ttt.connect(account1).withdraw();
+      expect(tx2).to.not.be.undefined;
+      
       const gameInfo = await ttt.getGameInfo(gameId);
       expect(gameInfo.winner).to.equal(
         "0x0000000000000000000000000000000000000000"
@@ -334,8 +303,15 @@ describe("TicTacToe", function () {
       expect(tx).to.not.be.undefined;
 
       await expect(
-        ttt.connect(account1).cancelGameAndRefund(gameId)
+        ttt.connect(account1).cancelGame(gameId)
       ).to.be.revertedWith("Can't cancel");
+    });
+
+
+    it("Should fail - Tried to start game twice", async function () {
+      await expect(
+        ttt.connect(account1).createGame()
+      ).to.be.revertedWith("Invalid ETH");
     });
   });
 });
